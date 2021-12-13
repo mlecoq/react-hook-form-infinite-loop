@@ -1,26 +1,43 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import "./styles.css";
+import LokiJSAdapter from "@nozbe/watermelondb/adapters/lokijs";
+import { Database, appSchema, tableSchema } from "@nozbe/watermelondb";
+import Post from "./Post";
+import { Routes, Route } from "react-router-dom";
+import Home from "./Home";
+import CreatePost from "./CreatePost";
+import UpdatePost from "./UpdatePost";
+import DatabaseProvider from "@nozbe/watermelondb/DatabaseProvider";
 
-function App() {
+export default function App() {
+  const adapter = new LokiJSAdapter({
+    schema: appSchema({
+      version: 1,
+      tables: [
+        tableSchema({
+          name: "posts",
+          columns: [
+            { name: "title", type: "string" },
+            { name: "body", type: "string" },
+          ],
+        }),
+      ],
+    }),
+    useWebWorker: false,
+    useIncrementalIndexedDB: true,
+  });
+
+  const database = new Database({
+    adapter,
+    modelClasses: [Post],
+  });
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <DatabaseProvider database={database}>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/createPost" element={<CreatePost />} />
+        <Route path="/updatePost/:postId" element={<UpdatePost />} />
+      </Routes>
+    </DatabaseProvider>
   );
 }
-
-export default App;
